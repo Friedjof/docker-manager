@@ -1,0 +1,53 @@
+networks:
+  bshome:
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+      - subnet: 192.168.42.0/24
+      driver:
+        name: 'default'
+  iot-network:
+    driver: bridge
+    driver_opts: null
+    ipam:
+      config:
+      - subnet: 172.24.0.0/24
+      driver:
+        name: 'default'
+services:
+  deconz:
+    container_name: deconz
+    devices:
+    - /dev/ttyACM0
+    dns:
+    - 192.168.1.15
+    - 1.1.1.1
+    environment:
+    - DEBAIN_FRONTEND: 'noninteractive'
+    - DECONZ_DEVICE: '/dev/ttyACM0'
+    - DECONZ_VNC_MODE: 0
+    - DECONZ_VNC_PASSWORD: '1234'
+    - DECONZ_VNC_PORT: 5900
+    - DECONZ_WEB_PORT: 80
+    - DECONZ_WS_PORT: 443
+    image: marthoc/deconz:latest
+    networks:
+      bshome:
+        ipv4_address: 192.168.42.5
+      iot-network:
+        ipv4_address: 172.24.0.5
+    restart: unless-stopped
+    volumes:
+    - deconz:/root/.local/share/dresden-elektronik/deCONZ
+version: '2'
+volumes:
+  deconz:
+    deconz:
+      driver: local
+      driver_opts:
+        device: /home/pi/volumes/deconz
+        o: bild
+        size: 5GiB
+        type: none
